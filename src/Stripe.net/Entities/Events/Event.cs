@@ -31,8 +31,36 @@ namespace Stripe
         [JsonProperty("pending_webhooks")]
         public long PendingWebhooks { get; set; }
 
-        [JsonProperty("request")]
+        #region Request
+        /* This is handled like an expandable attribute, but it's not. Rather, older API versions
+         * (< 2017-05-25) return `request` as a string, while newer API versions return a hash.
+         * The Stripe.net library is pinned to a specific API version, so we generally aren't
+         * concerned with supporting older API versions, but events are a special case: when
+         * sending webhooks, Stripe formats event objects according to the account's default API
+         * version, which may be different from the version the library is pinned to. That's why
+         * we make a best effort to deserialize the event anyway.
+         */
+
+        [JsonIgnore]
+        public string RequestId { get; set; }
+
+        [JsonIgnore]
         public EventRequest Request { get; set; }
+
+        [JsonProperty("request")]
+        internal object InternalRequest
+        {
+            get
+            {
+                return this.Request ?? (object)this.RequestId;
+            }
+
+            set
+            {
+                StringOrObject<EventRequest>.Map(value, s => this.RequestId = s, o => this.Request = o);
+            }
+        }
+        #endregion
 
         [JsonProperty("type")]
         public string Type { get; set; }

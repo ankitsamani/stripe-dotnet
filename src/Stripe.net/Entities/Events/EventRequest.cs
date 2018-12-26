@@ -2,7 +2,7 @@ namespace Stripe
 {
     using Newtonsoft.Json;
 
-    public class EventRequest : StripeEntity
+    public class EventRequest : StripeEntity, IHasId
     {
         [JsonProperty("id")]
         public string Id { get; set; }
